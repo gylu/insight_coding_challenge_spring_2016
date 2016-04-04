@@ -1,3 +1,34 @@
+# Overview of what this code does:
+# 1.     Get tweets:
+# 1a     If it's a rate limiting message, ignore it
+
+# 2.     Check timestamp:
+# 2a     If timestamp is older than 60s, delete tweet, jump to call calc_average_degree() to end
+# 2b     If timestamp is newer than newest, update newest_timestamp value
+
+# 3      Delete edges that are older than 60 seconds
+
+# 4      Find hashtags:
+# 4a     If tweet has 2 or most hashtags, check and remove all duplicates
+# 4b     If only 0 or 1 hashtag remains, discard tweet, jump to call calc_average_degree()
+
+# 5      Create edge entries: (If tweet has 2 or more valid hashtags, create edge entries)
+# 5a     Use the combination package that was imported. Eg: list(combinations(['hashtag1','hashtag2','hashtag3'],2)). This outputs a list of tuples.
+# 5b     Sort each edge entry alphabetically so that we don't have the check the reverse. Do this by converting each tuple into a list and sorting
+
+# 6      Insert each new edge entry into edge_list:
+# 6a     Check that the edge (and the reverse) doesn't already exist, if it does, remove the older edge
+
+# 7      call calc_average_degree()
+# 7a     concatenate the 2 columns of nodes in the edge_list, and sum
+# 7b     remove duplicates to get the number of nodes
+
+#Note that tweet_input/tweets.txt is listed in gitignore because it's so big
+
+
+
+####### Implementation of the above outline #######
+
 import sys
 import os
 import json #use for json parser
@@ -9,41 +40,55 @@ import time #needed to deal with timestamps
 #print(sys.argv[1]) #will be ./tweet_input/tweets.txt 
 #print(sys.argv[2]) #Will be ./tweet_output/output.txt
 
-#todo replace:
-# sys_argv0 replace for sys.argv[0]
-# sys_argv1
-# sys_argv2
-sys_argv1 = './tweet_input/tweets.txt'
-sys_argv2 = './tweet_output/output.txt'
-#todo:
-#remove tweet_input/tweets.txt from the gitignore
+sys_argv0 = sys.argv[0]
+sys_argv1 = sys.argv[1]
+sys_argv2 = sys.argv[2]
 
-#1.     Get tweets:
-#1a     If it's a rate limiting message, ignore it
+#For debugging and copy/pasting into shell:
+#sys_argv1 = './tweet_input/tweets.txt'
+#sys_argv2 = './tweet_output/output.txt'
 
-#2.     Check timestamp:
-#2a     If timestamp is older than 60s, delete tweet, jump to call calc_average_degree() to end
-#2b     If timestamp is newer than newest, update newest_timestamp value
-
-#3      Delete edges that are older than 60 seconds
-
-#4      Find hashtags:
-#4a     If tweet has 2 or most hashtags, check and remove all duplicates
-#4b     If only 0 or 1 hashtag remains, discard tweet, jump to call calc_average_degree()
-
-#5      Create edge entries: (If tweet has 2 or more valid hashtags, create edge entries)
-#5a     Use the combination package that was imported. Eg: list(combinations(['hashtag1','hashtag2','hashtag3'],2)). This outputs a list of tuples.
-#5b     Sort each edge entry alphabetically so that we don't have the check the reverse. Do this by converting each tuple into a list and sorting
-
-#6      Insert each new edge entry into edge_list:
-#6a     Check that the edge (and the reverse) doesn't already exist, if it does, remove the older edge
-
-#7      call calc_average_degree()
-#7a     concatenate the 2 columns of nodes in the edge_list, and sum
-#7b     remove duplicates to get the number of nodes
+NEWEST_TIMESTAMP=0.00; #global vairable
+EDGE_LIST=[] #of the format: [[timestamp1,['hashtagX1','hashtagY1']], [timestamp2,['hashtagX2','hashtagY2']], ...etc]
+OUTPUT_FILE=""
 
 
 
+
+def main():
+    global NEWEST_TIMESTAMP
+    global EDGE_LIST
+    global OUTPUT_FILE
+    #clear out old ./tweet_output/tweets.txt file
+    if os.path.exists(sys_argv2):
+        os.remove(sys_argv2) #note that the location is based on where run.sh was called
+    OUTPUT_FILE = open(sys_argv2, 'a+')
+
+    #1. Get tweets
+    #future optimization: this may be able to be optimized to process one-at-a-time as each json object line in the text file is read
+    tweets = []
+    for line in open(sys_argv1, 'r'):
+        line_json_parsed = json.loads(line)
+        if 'created_at' in line_json_parsed: #1a. Ignore the rate limiting messages
+            tweets.append(line_json_parsed)
+            # #Example usage of the tweets array that examples the 248th tweet in the file
+            # tweets[248] # fetches a tweet
+            # tweets[248]['created_at'] # fetches timestamp of tweet, returns in the format of "Wed Aug 29 17:12:58 +0000 2012"
+            # tweets[248]['entities']['hashtags'] # fetches all hashtags of a tweet
+            # tweets[248]['entities']['hashtags'][1] # fetches individual hashtag of a tweet
+            # tweets[248]['entities']['hashtags'][1]['text'] # fetch individual hashtag text of a tweet
+            # len(tweets[248]['entities']['hashtags']) #tells you how many hashtags the tweet had
+
+    for tweet in tweets:
+        tweet_timestamp = time.mktime(time.strptime(tweet['created_at'],"%a %b %d %H:%M:%S +0000 %Y")) #followed this http://stackoverflow.com/questions/18604755/twitter-created-at-convert-epoch-time-in-python
+        if (check_and_update_timestamp(tweet_timestamp)):     #2. Check timestamp: #note that this created_at field is always utc time
+            EDGE_LIST = [entry for entry in EDGE_LIST if entry[0] > NEWEST_TIMESTAMP-60]
+            validHashtags=find_hashtags(tweet)         #4      Find hashtags:
+            if(len(validHashtags)>1):
+                new_list_of_edges=create_edge_entries(validHashtags);             #5      Create edge entries:
+                update_edge_list(new_list_of_edges,tweet_timestamp);
+        calc_average_degree();             #6      Insert each new edge entry into edge_list:
+    OUTPUT_FILE.close();
 
 
 ####### Functions are defined here #######
@@ -95,18 +140,19 @@ def update_edge_list(new_list_of_edges,tweet_timestamp):
 #7b     remove duplicates to get the number of nodes
 def calc_average_degree():
     global EDGE_LIST
+    global OUTPUT_FILE
     all_edges=getColumn(EDGE_LIST,1)
     sumDegrees=2*len(all_edges);
     list_of_all_nodes = set([item for sublist in all_edges for item in sublist]) #followed this: http://stackoverflow.com/questions/952914/making-a-flat-list-out-of-list-of-lists-in-python
     num_nodes=len(list_of_all_nodes)
     average_degree_untruncated=0.00
     if (num_nodes==0):
-        outputFile.write('0.00') 
+        OUTPUT_FILE.write('0.00') 
     else:  
         average_degree_untruncated=sumDegrees/num_nodes;
         average_degree='%.2f'%(average_degree_untruncated);
-        outputFile.write(average_degree)
-    outputFile.write("\n")
+        OUTPUT_FILE.write(average_degree)
+    OUTPUT_FILE.write("\n")
     return True;
 
 #helper function for getting columns
@@ -115,46 +161,5 @@ def getColumn(matrix, i):
 
 
 
-
-####### Implementation of the above outline #######
-
-NEWEST_TIMESTAMP=0.00; #global vairable
-EDGE_LIST=[] #of the format: [[timestamp1,['hashtagX1','hashtagY1']], [timestamp2,['hashtagX2','hashtagY2']], ...etc]
-
-#clear out old ./tweet_output/tweets.txt file
-if os.path.exists(sys_argv2):
-    os.remove(sys_argv2) #note that the location is based on where run.sh was called
-
-outputFile = open(sys_argv2, 'a+')
-
-#1. Get tweets
-
-#future optimization: this may be able to be optimized to process one-at-a-time as each json object line in the text file is read
-tweets = []
-for line in open(sys_argv1, 'r'):
-    line_json_parsed = json.loads(line)
-    if 'created_at' in line_json_parsed: #1a. Ignore the rate limiting messages
-        tweets.append(line_json_parsed)
-        # #Example usage of the tweets array that examples the 248th tweet in the file
-        # tweets[248] # fetches a tweet
-        # tweets[248]['created_at'] # fetches timestamp of tweet, returns in the format of "Wed Aug 29 17:12:58 +0000 2012"
-        # tweets[248]['entities']['hashtags'] # fetches all hashtags of a tweet
-        # tweets[248]['entities']['hashtags'][1] # fetches individual hashtag of a tweet
-        # tweets[248]['entities']['hashtags'][1]['text'] # fetch individual hashtag text of a tweet
-        # len(tweets[248]['entities']['hashtags']) #tells you how many hashtags the tweet had
-
-for tweet in tweets:
-    tweet_timestamp = time.mktime(time.strptime(tweet['created_at'],"%a %b %d %H:%M:%S +0000 %Y")) #followed this http://stackoverflow.com/questions/18604755/twitter-created-at-convert-epoch-time-in-python
-    if (check_and_update_timestamp(tweet_timestamp)):     #2. Check timestamp: #note that this created_at field is always utc time
-        EDGE_LIST = [entry for entry in EDGE_LIST if entry[0] > NEWEST_TIMESTAMP-60]
-        validHashtags=find_hashtags(tweet)         #4      Find hashtags:
-        if(len(validHashtags)>1):
-            new_list_of_edges=create_edge_entries(validHashtags);             #5      Create edge entries:
-            update_edge_list(new_list_of_edges,tweet_timestamp);
-    calc_average_degree();             #6      Insert each new edge entry into edge_list:
-
-outputFile.close();
-
-
-
-
+if __name__ == "__main__":
+    main()
