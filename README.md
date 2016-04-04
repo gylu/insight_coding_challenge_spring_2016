@@ -11,14 +11,11 @@
 4.     Find hashtags:
   4.     If tweet has 2 or most hashtags, check and remove all duplicates
   4.    If only 0 or 1 hashtag remains, discard tweet, jump to call calc_average_degree()
-
 5.   	Create edge entries: (If tweet has 2 or more valid hashtags, create edge entries)
   5.     Use the combination package that was imported. Eg: list(combinations(['hashtag1','hashtag2','hashtag3'],2)). This outputs a list of tuples.
   5.    Sort each edge entry alphabetically so that we don't have the check the reverse. Do this by converting each tuple into a list and sorting
-
 6.      Insert each new edge entry into edge_list:
   6.     Check that the edge (and the reverse) doesn't already exist, if it does, remove the older edge
-
 7.      call calc_average_degree()
   7.     concatenate the 2 columns of nodes in the edge_list, and sum
   7.    remove duplicates to get the number of nodes
