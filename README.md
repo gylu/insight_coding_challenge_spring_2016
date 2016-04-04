@@ -1,7 +1,8 @@
 # Insight_coding_challenge
 
+## The solution file to this coding challenge is src/average_degree.py 
 
-## Overview of what this code does:
+### Overview of what src/average_degree.py does:
 1.     Get tweets:
   1.     If it's a rate limiting message, ignore it
 2.     Check timestamp:
@@ -20,15 +21,16 @@
   7.     concatenate the 2 columns of nodes in the edge_list, and sum
   7.    remove duplicates to get the number of nodes
 
-## The solution file to this coding challenge is src/average_degree.py. 
 
-That file already imports all the pacakges it needs. The following packages are used/imported:
+### src/average_degree.py already imports all the pacakges it needs. 
 
+The following packages are used/imported:
+
+* import time - needed to deal with timestamps
 * import sys - for reading the arugments of the run.sh command
 * import json - for processing json
 * import os - for checking if output.txt already exists, and deleting it if it does
 * from itertools import combinations - used to run combinations (order doesn't matter), Taken from: https://rosettacode.org/wiki/Combinations#Python
-* import time - needed to deal with timestamps
 
 
-* Note that this repo started off as a clone of https://github.com/InsightDataScience/coding-challenge
+#### Note that this repo started off as a clone of https://github.com/InsightDataScience/coding-challenge
