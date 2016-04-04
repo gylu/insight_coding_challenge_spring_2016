@@ -23,17 +23,18 @@ sys_argv2 = './tweet_output/output.txt'
 #1a     If it's a rate limiting message, ignore it
 
 #2.     Check timestamp and:
-#2b     If timestamp is older than 60s, delete tweet, call calc_average_degree()
-#2c     If timestamp is not older than 60s, process the tweet
+#2a     If timestamp is older than 60s, delete tweet, jump to call calc_average_degree()
+#2b     If timestamp is newer than newest, update newest_timestamp value
+#2c     Clean the edge list: Delete edges that are older than 60 seconds
+#2c     Process the tweet
+
 
 #3.     Processing the tweet:
-#3a     If timestamp is newer than newest, update newest_timestamp value
-#3b     Clean the edge list: Delete edges that are older than 60 seconds
 #3c     If tweet has 2 or most hashtags, check and remove all duplicates
-#3d     If only 0 or 1 hashtag remains, discard
+#3d     If only 0 or 1 hashtag remains, discard tweet, jump to call calc_average_degree()
 
-#4      Create edge entries for each tweet that still has 2 or more distinct hashtags:
-#4a     Use the combination packcage that was imported. Eg: list(combinations(['hashtag1','hashtag2','hashtag3'],2)). This outputs a list of tuples.
+#4      If tweet has 2 or more valid hashtags, create edge entries :
+#4a     Use the combination package that was imported. Eg: list(combinations(['hashtag1','hashtag2','hashtag3'],2)). This outputs a list of tuples.
 #4b     Sort each edge entry alphabetically so that we don't have the check the reverse. Do this by converting each tuple into a list and sorting
 
 #5      Insert each new edge entry into edge_list:
