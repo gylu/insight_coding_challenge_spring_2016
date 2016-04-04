@@ -18,28 +18,25 @@ sys_argv2 = './tweet_output/output.txt'
 #todo:
 #remove tweet_input/tweets.txt from the gitignore
 
-#edge_list will be of the form: timestamp, node1, node2
 #1.     Get tweets:
 #1a     If it's a rate limiting message, ignore it
 
-#2.     Check timestamp and:
-#2a     If timestamp is older than 60s, delete tweet, jump to call calc_average_degree()
+#2.     Check timestamp:
+#2a     If timestamp is older than 60s, delete tweet, jump to call calc_average_degree() to end
 #2b     If timestamp is newer than newest, update newest_timestamp value
-#2c     Clean the edge list: Delete edges that are older than 60 seconds
-#2c     Process the tweet
 
+#3      Delete edges that are older than 60 seconds
 
-#3.     Processing the tweet:
-#3c     If tweet has 2 or most hashtags, check and remove all duplicates
-#3d     If only 0 or 1 hashtag remains, discard tweet, jump to call calc_average_degree()
+#4      Find hashtags:
+#4a     If tweet has 2 or most hashtags, check and remove all duplicates
+#4b     If only 0 or 1 hashtag remains, discard tweet, jump to call calc_average_degree()
 
-#4      If tweet has 2 or more valid hashtags, create edge entries :
-#4a     Use the combination package that was imported. Eg: list(combinations(['hashtag1','hashtag2','hashtag3'],2)). This outputs a list of tuples.
-#4b     Sort each edge entry alphabetically so that we don't have the check the reverse. Do this by converting each tuple into a list and sorting
+#5      Create edge entries: (If tweet has 2 or more valid hashtags, create edge entries)
+#5a     Use the combination package that was imported. Eg: list(combinations(['hashtag1','hashtag2','hashtag3'],2)). This outputs a list of tuples.
+#5b     Sort each edge entry alphabetically so that we don't have the check the reverse. Do this by converting each tuple into a list and sorting
 
-#5      Insert each new edge entry into edge_list:
-#5a     Check that the edge (and the reverse) doesn't already exist, if it does, remove the older edge
-
+#6      Insert each new edge entry into edge_list:
+#6a     Check that the edge (and the reverse) doesn't already exist, if it does, remove the older edge
 
 #7      call calc_average_degree()
 #7a     concatenate the 2 columns of nodes in the edge_list, and sum
@@ -48,45 +45,116 @@ sys_argv2 = './tweet_output/output.txt'
 
 
 
-#1. Get tweets
+
+####### Functions are defined here #######
+
+#2.     Check timestamp:
+#2a     If timestamp is older than 60s, delete tweet, jump to call calc_average_degree()
+#2b     If timestamp is newer than newest, update newest_timestamp value
+def check_and_update_timestamp( timestampToBeChecked_epoch_utc ): 
+    global NEWEST_TIMESTAMP
+    if (timestampToBeChecked_epoch_utc < NEWEST_TIMESTAMP-60):
+        return False
+    elif (timestampToBeChecked_epoch_utc > NEWEST_TIMESTAMP):
+        NEWEST_TIMESTAMP=timestampToBeChecked_epoch_utc;
+    return True #whether or not this was the newest timestamp or just a valid one, return true
+ 
+#4      Find Hashtags:
+#4a     If tweet has 2 or most hashtags, check and remove all duplicates
+#4b     If only 0 or 1 hashtag remains, discard tweet
+def find_hashtags(tweet):
+    hashtags=[]
+    if (len(tweet['entities']['hashtags'])>0):
+        for tweet_entity_hashtag in tweet['entities']['hashtags']:
+            hashtags.append(tweet_entity_hashtag['text']);
+        hashtags=list(set(hashtags)) #remove duplicates. Note that this could still return just 1 hashtag
+    return hashtags
+
+#5a     Use the combination package that was imported. Eg: list(combinations(['hashtag1','hashtag2','hashtag3'],2)). This outputs a list of tuples.
+#5b     Sort each edge entry alphabetically so that we don't have the check the reverse. Do this by converting each tuple into a list and sorting
+def create_edge_entries(listOfHashtags):
+    new_list_of_tuple_edges=list(combinations(listOfHashtags,2))
+    new_list_of_edges = [sorted(element) for element in new_list_of_tuple_edges]
+    return new_list_of_edges
+
+#6      Insert each new edge entry into edge_list:
+#6a     Check that the edge doesn't already exist, if it does, update timestamp of that edge (no need to check for reverse order, because each edge entry is already sorted)
+def update_edge_list(new_list_of_edges,tweet_timestamp):
+    global EDGE_LIST
+    for new_edge_to_be_added in new_list_of_edges:
+        for element in EDGE_LIST:
+            if (element[1]==new_edge_to_be_added):
+                element[0]= tweet_timestamp;
+                break;
+        #looped through whole existing EDGE_LIST and didn't break out of 2nd for loop, meaning this is a new edge
+        EDGE_LIST.append([tweet_timestamp,new_edge_to_be_added])
+    return True;
+
+#7      call calc_average_degree()
+#7a     concatenate the 2 columns of nodes in the edge_list, and sum
+#7b     remove duplicates to get the number of nodes
+def calc_average_degree():
+    global EDGE_LIST
+    all_edges=getColumn(EDGE_LIST,1)
+    sumDegrees=2*len(all_edges);
+    list_of_all_nodes = set([item for sublist in all_edges for item in sublist]) #followed this: http://stackoverflow.com/questions/952914/making-a-flat-list-out-of-list-of-lists-in-python
+    num_nodes=len(list_of_all_nodes)
+    average_degree_untruncated=0.00
+    if (num_nodes==0):
+        outputFile.write('0.00') 
+    else:  
+        average_degree_untruncated=sumDegrees/num_nodes;
+        average_degree='%.2f'%(average_degree_untruncated);
+        outputFile.write(average_degree)
+    outputFile.write("\n")
+    return True;
+
+#helper function for getting columns
+def getColumn(matrix, i):
+    return [row[i] for row in matrix]
+
+
+
+
+####### Implementation of the above outline #######
+
+NEWEST_TIMESTAMP=0.00; #global vairable
+EDGE_LIST=[] #of the format: [[timestamp1,['hashtagX1','hashtagY1']], [timestamp2,['hashtagX2','hashtagY2']], ...etc]
+
 #clear out old ./tweet_output/tweets.txt file
 if os.path.exists(sys_argv2):
     os.remove(sys_argv2) #note that the location is based on where run.sh was called
 
-#1a. Ignore the rate limiting messages
+outputFile = open(sys_argv2, 'a+')
+
+#1. Get tweets
+
 #future optimization: this may be able to be optimized to process one-at-a-time as each json object line in the text file is read
 tweets = []
 for line in open(sys_argv1, 'r'):
     line_json_parsed = json.loads(line)
-    if 'created_at' in line_json_parsed: #ignore the limit stuff
+    if 'created_at' in line_json_parsed: #1a. Ignore the rate limiting messages
         tweets.append(line_json_parsed)
-
-# #Example usage of the tweets array that examples the 248th tweet in the file
-# tweets[248] # fetches a tweet
-# tweets[248]['created_at'] # fetches timestamp of tweet
-# tweets[248]['entities']['hashtags'] # fetches all hashtags of a tweet
-# tweets[248]['entities']['hashtags'][1] # fetches individual hashtag of a tweet
-# tweets[248]['entities']['hashtags'][1]['text'] # fetch individual hashtag text of a tweet
-# len(tweets[248]['entities']['hashtags']) #tells you how many hashtags the tweet had
-
-newest_timestamp=0.00;
-#check timestamp
+        # #Example usage of the tweets array that examples the 248th tweet in the file
+        # tweets[248] # fetches a tweet
+        # tweets[248]['created_at'] # fetches timestamp of tweet, returns in the format of "Wed Aug 29 17:12:58 +0000 2012"
+        # tweets[248]['entities']['hashtags'] # fetches all hashtags of a tweet
+        # tweets[248]['entities']['hashtags'][1] # fetches individual hashtag of a tweet
+        # tweets[248]['entities']['hashtags'][1]['text'] # fetch individual hashtag text of a tweet
+        # len(tweets[248]['entities']['hashtags']) #tells you how many hashtags the tweet had
 
 for tweet in tweets:
-    tweetWithinTimeRange = checkTimeStamp_withinRange(tweet['created_at']); #note that this created_at field is always utc time
-    if (!tweetWithinTimeRange):
-        calc_average_degree();
-    else:
+    tweet_timestamp = time.mktime(time.strptime(tweet['created_at'],"%a %b %d %H:%M:%S +0000 %Y")) #followed this http://stackoverflow.com/questions/18604755/twitter-created-at-convert-epoch-time-in-python
+    if (check_and_update_timestamp(tweet_timestamp)):     #2. Check timestamp: #note that this created_at field is always utc time
+        EDGE_LIST = [entry for entry in EDGE_LIST if entry[0] > NEWEST_TIMESTAMP-60]
+        validHashtags=find_hashtags(tweet)         #4      Find hashtags:
+        if(len(validHashtags)>1):
+            new_list_of_edges=create_edge_entries(validHashtags);             #5      Create edge entries:
+            update_edge_list(new_list_of_edges,tweet_timestamp);
+    calc_average_degree();             #6      Insert each new edge entry into edge_list:
+
+outputFile.close();
 
 
-def checkTimeStamp_withinRange( newTimeStampToBeChecked ):
-    #newTimeStampToBeChecked is something in the format of "Wed Aug 29 17:12:58 +0000 2012"
-    timestampToBeChecked_epoch_utc = time.mktime(time.strptime(created_at,"%a %b %d %H:%M:%S +0000 %Y")) #followed this http://stackoverflow.com/questions/18604755/twitter-created-at-convert-epoch-time-in-python
-    if timestampToBeChecked_epoch_utc < newest_timestamp -60:
-        return false
-    else if timestampToBeChecked_epoch_utc > newest_timestamp:
-        newest_timestamp=timestampToBeChecked_epoch_utc;
-    return true
- 
-def calc_average_degree():
-    return true
+
+
