@@ -20,8 +20,9 @@
 6.      Insert each new edge entry into edge_list:
   6.     Check that the edge doesn't already exist, if it does, update timestamp of that edge (no need to check for reverse order, because each edge entry is already sorted)
 7.      call calc_average_degree()
-  7.     concatenate the 2 columns of nodes in the edge_list, and sum
-  7.    remove duplicates to get the number of nodes
+  7.     Concatenate the 2 columns of nodes in the edge_list, and sum (this will be the sum of degrees)
+  7.     Concatenate the 2 columns of nodes in the edge_list, remove duplicates, and sum (this will be the total number of nodes)
+  7.     Divide
 
 
 ### src/average_degree.py already imports all the pacakges it needs. 

@@ -145,7 +145,7 @@ def update_edge_list(new_list_of_edges,tweet_timestamp):
     return True;
 
 #7      call calc_average_degree()
-#7a     concatenate the 2 columns of nodes in the edge_list, and sum
+#7a     concatenate the 2 columns of nodes in the edge_list, and sum, this will give the total sum of degrees
 #7b     remove duplicates to get the number of nodes
 def calc_average_degree():
     global EDGE_LIST
