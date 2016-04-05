@@ -34,6 +34,7 @@ import os
 import json #use for json parser
 from itertools import combinations #used to run combinations (order doesn't matter)
 import time #needed to deal with timestamps
+import copy
 
 #Note: From the way run.sh is called:
 #print(sys.argv[0]) #will be the name of this script: average_degree.py
@@ -51,7 +52,7 @@ sys_argv2 = sys.argv[2]
 NEWEST_TIMESTAMP=0.00; #global vairable
 EDGE_LIST=[] #of the format: [[timestamp1,['hashtagX1','hashtagY1']], [timestamp2,['hashtagX2','hashtagY2']], ...etc]
 OUTPUT_FILE=""
-
+DEBUG=False;
 
 
 
@@ -59,6 +60,7 @@ def main():
     global NEWEST_TIMESTAMP
     global EDGE_LIST
     global OUTPUT_FILE
+    global DEBUG
     #clear out old ./tweet_output/tweets.txt file
     if os.path.exists(sys_argv2):
         os.remove(sys_argv2) #note that the location is based on where run.sh was called
@@ -81,12 +83,17 @@ def main():
 
     for tweet in tweets:
         tweet_timestamp = time.mktime(time.strptime(tweet['created_at'],"%a %b %d %H:%M:%S +0000 %Y")) #followed this http://stackoverflow.com/questions/18604755/twitter-created-at-convert-epoch-time-in-python
+        if DEBUG: print("\nNew tweetTimestamp: ",tweet_timestamp);
         if (check_and_update_timestamp(tweet_timestamp)):     #2. Check timestamp: #note that this created_at field is always utc time
-            EDGE_LIST = [entry for entry in EDGE_LIST if entry[0] > NEWEST_TIMESTAMP-60]
+            if DEBUG: print("updated NEWEST_TIMESTAMP: ",NEWEST_TIMESTAMP)
+            if DEBUG: print("EDGE_LIST before clean: ", EDGE_LIST)
+            EDGE_LIST = [entry for entry in EDGE_LIST if entry[0] > NEWEST_TIMESTAMP-60] # 3      Delete edges that are older than 60 seconds
+            if DEBUG: print("EDGE_LIST after clean: ", EDGE_LIST)
             validHashtags=find_hashtags(tweet)         #4      Find hashtags:
             if(len(validHashtags)>1):
                 new_list_of_edges=create_edge_entries(validHashtags);             #5      Create edge entries:
                 update_edge_list(new_list_of_edges,tweet_timestamp);
+                if DEBUG: print("EDGE_LIST after update: ", EDGE_LIST)
         calc_average_degree();             #6      Insert each new edge entry into edge_list:
     OUTPUT_FILE.close();
 
@@ -98,6 +105,7 @@ def main():
 #2b     If timestamp is newer than newest, update newest_timestamp value
 def check_and_update_timestamp( timestampToBeChecked_epoch_utc ): 
     global NEWEST_TIMESTAMP
+    if DEBUG: print("prev NEWEST_TIMESTAMP: ",NEWEST_TIMESTAMP)
     if (timestampToBeChecked_epoch_utc < NEWEST_TIMESTAMP-60):
         return False
     elif (timestampToBeChecked_epoch_utc > NEWEST_TIMESTAMP):
@@ -127,12 +135,16 @@ def create_edge_entries(listOfHashtags):
 def update_edge_list(new_list_of_edges,tweet_timestamp):
     global EDGE_LIST
     for new_edge_to_be_added in new_list_of_edges:
+        edge_doesnt_exist_yet=True;
         for element in EDGE_LIST:
             if (element[1]==new_edge_to_be_added):
-                element[0]= tweet_timestamp;
+                edge_doesnt_exist_yet=False;
+                if(element[0]<tweet_timestamp):
+                    element[0]= tweet_timestamp;
                 break;
         #looped through whole existing EDGE_LIST and didn't break out of 2nd for loop, meaning this is a new edge
-        EDGE_LIST.append([tweet_timestamp,new_edge_to_be_added])
+        if edge_doesnt_exist_yet:
+            EDGE_LIST.append([tweet_timestamp,new_edge_to_be_added])
     return True;
 
 #7      call calc_average_degree()

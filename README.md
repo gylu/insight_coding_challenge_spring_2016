@@ -23,6 +23,7 @@
 
 
 ### src/average_degree.py already imports all the pacakges it needs. 
+#### Python 3 is used
 
 The following packages are used/imported:
 
