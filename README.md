@@ -36,7 +36,4 @@ The following packages are used/imported:
 
 #### Note that this repo started off as a clone of https://github.com/InsightDataScience/coding-challenge
 
-#### Running and Testing:
-I have been running the run.sh scripts with bash. E.g "bash ./run.sh" from the root directory.
-
-For testing, I have been running "bash ./run_tests.sh" from within the insight_testsuite directory
+For testing, call "./run_tests.sh" from within the insight_testsuite directory
