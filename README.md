@@ -1,7 +1,7 @@
 # Insight_coding_challenge
 
 ## The solution file to this coding challenge is src/average_degree.py 
-#### Python 3 is used!!
+#### Python 3 is used, therefore the environment needs to have it installed
 
 ### Overview of what src/average_degree.py does:
 1.     Get tweets:
@@ -36,5 +36,7 @@ The following packages are used/imported:
 
 #### Note that this repo started off as a clone of https://github.com/InsightDataScience/coding-challenge
 
-I have been running the run.sh scripts with bash. E.g "bash ./run.sh" from the root directory
+#### Running and Testing:
+I have been running the run.sh scripts with bash. E.g "bash ./run.sh" from the root directory.
+
 For testing, I have been running "bash ./run_tests.sh" from within the insight_testsuite directory

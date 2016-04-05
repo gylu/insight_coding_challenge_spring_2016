@@ -17,3 +17,5 @@
 {"created_at":"Thu Nov 12 05:06:58 +0000 2015","entities":{"hashtags":[{"text":"h1"},{"text":"h2"},{"text":"h3"},{"text":"h4"},{"text":"h5"}]}}
 {"created_at":"Thu Nov 12 05:07:30 +0000 2015","entities":{"hashtags":[{"text":"h1"},{"text":"h2"},{"text":"h3"}]}}
 {"created_at":"Thu Nov 12 05:07:59 +0000 2015","entities":{"hashtags":[{"text":"h4"},{"text":"h5"}]}}
+{"created_at":"Thu Nov 5 05:07:59 +0000 2015","entities":{"hashtags":[{"text":"h4"},{"text":"h5"}]}}
+{"created_at":"Thu Nov 12 05:07:56 +0000 2015","entities":{"hashtags":[{"text":"h3"},{"text":"h5"}]}}
