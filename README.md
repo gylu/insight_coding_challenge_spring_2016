@@ -5,6 +5,8 @@
 
 ### Overview of what src/average_degree.py does:
 ##### Note that steps 2 through 7 is performed for each tweet
+##### Note that EDGE_LIST is a list of lists with the format: [[timestamp1,['hashtagX1','hashtagY1']], [timestamp2,['hashtagX2','hashtagY2']], ...etc]
+
 1.     Get tweets:
   1.     If it's a rate limiting message, ignore it
 2.     Check timestamp:
@@ -17,12 +19,12 @@
 5.   	Create edge entries: (If tweet has 2 or more valid hashtags, create edge entries)
   5.     Use the combination package that was imported. Eg: list(combinations(['hashtag1','hashtag2','hashtag3'],2)). This outputs a list of tuples.
   5.    Sort each edge entry alphabetically so that we don't have the check the reverse. Do this by converting each tuple into a list and sorting
-6.      Insert each new edge entry into edge_list:
+6.      Insert each new edge entry into EDGE_LIST:
   6.     Check that the edge doesn't already exist, if it does, update timestamp of that edge (no need to check for reverse order, because each edge entry is already sorted)
 7.      call calc_average_degree()
-  7.     Concatenate the 2 columns of nodes in the edge_list, and sum (this will be the sum of degrees)
-  7.     Concatenate the 2 columns of nodes in the edge_list, remove duplicates, and sum (this will be the total number of nodes)
-  7.     Divide
+  7.     Concatenate the 2 columns of nodes in the EDGE_LIST, and sum (this will be the sum of degrees)
+  7.     Concatenate the 2 columns of nodes in the EDGE_LIST, remove duplicates, and sum (this will be the total number of nodes)
+  7.     Divide the total degrees by total nodes to get average degree count
 
 
 ### src/average_degree.py already imports all the pacakges it needs. 
