@@ -1,6 +1,7 @@
 # Insight_coding_challenge
 
 ## The solution file to this coding challenge is src/average_degree.py 
+#### Python 3 is used!!
 
 ### Overview of what src/average_degree.py does:
 1.     Get tweets:
@@ -23,7 +24,6 @@
 
 
 ### src/average_degree.py already imports all the pacakges it needs. 
-#### Python 3 is used
 
 The following packages are used/imported:
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Overview of what this code does:
 # 1.     Get tweets:
 # 1a     If it's a rate limiting message, ignore it
@@ -34,7 +36,6 @@ import os
 import json #use for json parser
 from itertools import combinations #used to run combinations (order doesn't matter)
 import time #needed to deal with timestamps
-import copy
 
 #Note: From the way run.sh is called:
 #print(sys.argv[0]) #will be the name of this script: average_degree.py
@@ -42,12 +43,8 @@ import copy
 #print(sys.argv[2]) #Will be ./tweet_output/output.txt
 
 sys_argv0 = sys.argv[0]
-sys_argv1 = sys.argv[1]
-sys_argv2 = sys.argv[2]
-
-#For debugging and copy/pasting into shell:
-#sys_argv1 = './tweet_input/tweets.txt'
-#sys_argv2 = './tweet_output/output.txt'
+sys_argv1 = sys.argv[1] #'./tweet_input/tweets.txt'
+sys_argv2 = sys.argv[2] #'./tweet_output/output.txt'
 
 NEWEST_TIMESTAMP=0.00; #global vairable
 EDGE_LIST=[] #of the format: [[timestamp1,['hashtagX1','hashtagY1']], [timestamp2,['hashtagX2','hashtagY2']], ...etc]
