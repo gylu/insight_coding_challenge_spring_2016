@@ -4,6 +4,7 @@
 #### Python 3 is used, therefore the environment needs to have it installed
 
 ### Overview of what src/average_degree.py does:
+##### Note that steps 2 through 7 is performed for each tweet
 1.     Get tweets:
   1.     If it's a rate limiting message, ignore it
 2.     Check timestamp:
