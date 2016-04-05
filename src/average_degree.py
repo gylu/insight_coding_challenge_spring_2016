@@ -159,7 +159,9 @@ def calc_average_degree():
         OUTPUT_FILE.write('0.00') 
     else:  
         average_degree_untruncated=sumDegrees/num_nodes;
-        average_degree='%.2f'%(average_degree_untruncated);
+        before_dec, after_dec = str('%.3f'%(average_degree_untruncated)).split('.')
+        average_degree='.'.join((before_dec, after_dec[0:2]))
+        #average_degree='%.2f'%(average_degree_untruncated); #this was rounding instead just truncating, not good...
         OUTPUT_FILE.write(average_degree)
     OUTPUT_FILE.write("\n")
     return True;
