@@ -19,7 +19,7 @@
 # 5b     Sort each edge entry alphabetically so that we don't have the check the reverse. Do this by converting each tuple into a list and sorting
 
 # 6      Insert each new edge entry into edge_list:
-# 6a     Check that the edge (and the reverse) doesn't already exist, if it does, remove the older edge
+# 6a     Check that the edge doesn't already exist, if it does, update timestamp of that edge (no need to check for reverse order, because each edge entry is already sorted)
 
 # 7      call calc_average_degree()
 # 7a     concatenate the 2 columns of nodes in the edge_list, and sum

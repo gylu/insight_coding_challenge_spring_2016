@@ -17,7 +17,7 @@
   5.     Use the combination package that was imported. Eg: list(combinations(['hashtag1','hashtag2','hashtag3'],2)). This outputs a list of tuples.
   5.    Sort each edge entry alphabetically so that we don't have the check the reverse. Do this by converting each tuple into a list and sorting
 6.      Insert each new edge entry into edge_list:
-  6.     Check that the edge (and the reverse) doesn't already exist, if it does, remove the older edge
+  6.     Check that the edge doesn't already exist, if it does, update timestamp of that edge (no need to check for reverse order, because each edge entry is already sorted)
 7.      call calc_average_degree()
   7.     concatenate the 2 columns of nodes in the edge_list, and sum
   7.    remove duplicates to get the number of nodes
